@@ -1,0 +1,31 @@
+bittorrent_me/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+.env
+venv/
+bittorrent_me/
+.venv/
+downloads/
+*.log
+.DS_Store
+*.sqlite3
+*.db
+# VSCode
+.vscode/
+# macOS
+Icon?
+# Python egg
+*.egg-info/
+# Docker
+*.pid
+# System files
+Thumbs.db
+downloads/
+download_state.json
+pyvenv.cfg
+.venv/
+bittorrent.log

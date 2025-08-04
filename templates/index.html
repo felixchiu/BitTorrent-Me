@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern BitTorrent Client</title>
+    
+    <!-- Modern CSS Framework -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Modern CSS Variables and Custom Styles -->
+    <style>
+        :root {
+            --primary-color: #3273dc;
+            --success-color: #48c774;
+            --warning-color: #ffdd57;
+            --danger-color: #f14668;
+            --info-color: #3298dc;
+            --dark-color: #363636;
+            --light-color: #f5f5f5;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Modern Gradient Background */
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* Enhanced Upload Area */
+        .upload-area {
+            border: 3px dashed #dbdbdb;
+            border-radius: var(--border-radius);
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            background: #fafafa;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: var(--transition);
+        }
+
+        .upload-area:hover::before {
+            left: 100%;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: #f0f8ff;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background-color: #f0f8ff;
+            transform: scale(1.02);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        .upload-area:hover .upload-icon {
+            transform: scale(1.1);
+        }
+
+        /* Modern Cards */
+        .download-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            border: 1px solid #f0f0f0;
+        }
+
+        .download-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .download-card-header {
+            background: linear-gradient(135deg, var(--primary-color), #4a90e2);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .download-card-body {
+            padding: 1.5rem;
+        }
+
+        /* Enhanced Progress Bar */
+        .progress-container {
+            margin: 1.5rem 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #f0f0f0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Status Grid */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .status-card {
+            background: var(--light-color);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            border-left: 4px solid var(--primary-color);
+            transition: var(--transition);
+        }
+
+        .status-card:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            color: #7a7a7a;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .status-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        /* Control Buttons */
+        .control-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .btn-control {
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .btn-control:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--info-color);
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        /* File Selection Modal */
+        .modal-card {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .file-selection {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .file-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: var(--transition);
+        }
+
+        .file-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-icon {
+            margin-right: 1rem;
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-path {
+            font-weight: 500;
+            color: var(--dark-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .file-size {
+            font-size: 0.875rem;
+            color: #7a7a7a;
+        }
+
+        .file-checkbox {
+            margin-left: 1rem;
+        }
+
+        /* Buttons */
+        .btn-modern {
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .download-card {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .upload-area {
+                padding: 2rem 1rem;
+                min-height: 200px;
+            }
+
+            .upload-icon {
+                font-size: 3rem;
+            }
+
+            .status-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 0.75rem;
+            }
+
+            .download-card-header {
+                flex-direction: column;
+                gap: 0.5rem;
+                text-align: center;
+            }
+
+            .control-buttons {
+                justify-content: center;
+            }
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: var(--transition);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background-color: var(--success-color);
+        }
+
+        .toast.error {
+            background-color: var(--danger-color);
+        }
+
+        .toast.info {
+            background-color: var(--info-color);
+        }
+
+        /* File Type Icons */
+        .file-icon.video { color: #e74c3c; }
+        .file-icon.audio { color: #3498db; }
+        .file-icon.image { color: #e67e22; }
+        .file-icon.document { color: #9b59b6; }
+        .file-icon.archive { color: #f39c12; }
+        .file-icon.text { color: #27ae60; }
+        .file-icon.generic { color: #95a5a6; }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-indicator.downloading { background-color: var(--success-color); }
+        .status-indicator.paused { background-color: var(--warning-color); }
+        .status-indicator.stopped { background-color: var(--danger-color); }
+        .status-indicator.completed { background-color: var(--info-color); }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero hero-gradient">
+        <div class="hero-body">
+            <div class="container">
+                <div class="columns is-centered">
+                    <div class="column is-8">
+                        <!-- Header -->
+                        <div class="has-text-centered mb-6">
+                            <h1 class="title is-1 has-text-white mb-2">
+                                <i class="fas fa-download mr-3"></i>
+                                Modern BitTorrent Client
+                            </h1>
+                            <p class="subtitle is-5 has-text-white has-text-weight-light">
+                                Advanced torrent downloading with full control
+                            </p>
+                        </div>
+
+                        <!-- Upload Section -->
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="upload-area" id="uploadArea">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <h3 class="title is-4 mb-2">Drop your torrent file here</h3>
+                                    <p class="subtitle is-6 has-text-grey">or click to browse</p>
+                                    <input type="file" id="fileInput" class="file-input" accept=".torrent" />
+                                    
+                                    <!-- Advanced Settings Toggle -->
+                                    <div class="field mt-4">
+                                        <label class="checkbox">
+                                            <input type="checkbox" id="showAdvancedSettings">
+                                            Show advanced download settings
+                                        </label>
+                                    </div>
+                                    
+                                    <!-- Advanced Settings Panel -->
+                                    <div id="advancedSettings" class="settings-panel" style="display: none;">
+                                        <h4 class="title is-5 mb-3">
+                                            <i class="fas fa-cog mr-2"></i>
+                                            Download Settings
+                                        </h4>
+                                        <div class="settings-grid">
+                                            <div class="field">
+                                                <label class="label">Download Speed Limit (KB/s)</label>
+                                                <div class="control">
+                                                    <input class="input" type="number" id="speedLimit" placeholder="0 = unlimited" value="0">
+                                                </div>
+                                            </div>
+                                            <div class="field">
+                                                <label class="label">Upload Speed Limit (KB/s)</label>
+                                                <div class="control">
+                                                    <input class="input" type="number" id="uploadLimit" placeholder="0 = unlimited" value="0">
+                                                </div>
+                                            </div>
+                                            <div class="field">
+                                                <label class="label">Max Peers</label>
+                                                <div class="control">
+                                                    <input class="input" type="number" id="maxPeers" placeholder="50" value="50">
+                                                </div>
+                                            </div>
+                                            <div class="field">
+                                                <label class="label">Max Connections</label>
+                                                <div class="control">
+                                                    <input class="input" type="number" id="maxConnections" placeholder="100" value="100">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="field mt-3">
+                                            <label class="checkbox">
+                                                <input type="checkbox" id="autoStop" checked>
+                                                Auto-stop after completion
+                                            </label>
+                                        </div>
+                                        <div class="field">
+                                            <label class="checkbox">
+                                                <input type="checkbox" id="verifyPieces" checked>
+                                                Verify piece hashes
+                                            </label>
+                                        </div>
+                                        <div class="field">
+                                            <label class="checkbox" id="preAllocate" checked>
+                                                <input type="checkbox">
+                                                Pre-allocate disk space
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings Card -->
+                        <div class="card mt-4">
+                            <div class="card-content">
+                                <h4 class="title is-5 mb-3">
+                                    <i class="fas fa-cog mr-2"></i>
+                                    Global Settings
+                                </h4>
+                                <div class="field">
+                                    <label class="label">Download Directory</label>
+                                    <div class="control has-icons-left">
+                                        <input class="input" type="text" id="downloadDir" placeholder="Enter download directory path">
+                                        <span class="icon is-small is-left">
+                                            <i class="fas fa-folder"></i>
+                                        </span>
+                                    </div>
+                                    <p class="help">Leave empty to use default directory</p>
+                                </div>
+                                <button class="button is-primary btn-modern" onclick="setDownloadDirectory()">
+                                    <i class="fas fa-save mr-2"></i>
+                                    Save Settings
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Downloads Container -->
+                        <div id="downloadsContainer" class="mt-6">
+                            <!-- Downloads will be dynamically added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- File Selection Modal -->
+    <div class="modal" id="fileSelectionModal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">
+                    <i class="fas fa-folder-open mr-2"></i>
+                    Select Files to Download
+                </p>
+                <button class="delete" aria-label="close" onclick="closeFileSelectionModal()"></button>
+            </header>
+            <section class="modal-card-body">
+                <div id="fileSelectionContent">
+                    <!-- File selection content will be dynamically added here -->
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success btn-modern" onclick="saveFileSelection()">
+                    <i class="fas fa-check mr-2"></i>
+                    Save Selection
+                </button>
+                <button class="button btn-modern" onclick="closeFileSelectionModal()">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancel
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">
+                    <i class="fas fa-cog mr-2"></i>
+                    Download Settings
+                </p>
+                <button class="delete" aria-label="close" onclick="closeSettingsModal()"></button>
+            </header>
+            <section class="modal-card-body">
+                <div id="settingsContent">
+                    <!-- Settings content will be dynamically added here -->
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-success btn-modern" onclick="saveSettings()">
+                    <i class="fas fa-check mr-2"></i>
+                    Save Settings
+                </button>
+                <button class="button btn-modern" onclick="closeSettingsModal()">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancel
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Modern JavaScript -->
+    <script>
+        // Global variables
+        let currentFileSelection = {};
+        let currentTorrentId = null;
+        let currentSettings = null;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeUploadArea();
+            initializeAdvancedSettings();
+            loadDownloadDirectory();
+            startStatusPolling();
+        });
+
+        // Upload area functionality
+        function initializeUploadArea() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                }
+            });
+        }
+
+        // Advanced settings toggle
+        function initializeAdvancedSettings() {
+            const toggle = document.getElementById('showAdvancedSettings');
+            const panel = document.getElementById('advancedSettings');
+            
+            toggle.addEventListener('change', () => {
+                panel.style.display = toggle.checked ? 'block' : 'none';
+            });
+        }
+
+        // Handle file upload
+        async function handleFileUpload(file) {
+            if (!file.name.endsWith('.torrent')) {
+                showToast('Please select a valid .torrent file', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // Get advanced settings
+            const settings = getAdvancedSettings();
+            formData.append('settings', JSON.stringify(settings));
+
+            try {
+                showToast('Uploading torrent file...', 'info');
+                
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast(`Torrent parsed: ${result.name}`, 'success');
+                    
+                    if (result.is_multi_file && result.files.length > 0) {
+                        showFileSelectionModal(result.torrent_id, result.files);
+                    } else {
+                        startDownload(result.torrent_id);
+                    }
+                } else {
+                    showToast(result.error || 'Upload failed', 'error');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showToast('Upload failed. Please try again.', 'error');
+            }
+        }
+
+        // Get advanced settings
+        function getAdvancedSettings() {
+            return {
+                speed_limit: parseInt(document.getElementById('speedLimit').value) || 0,
+                upload_limit: parseInt(document.getElementById('uploadLimit').value) || 0,
+                max_peers: parseInt(document.getElementById('maxPeers').value) || 50,
+                max_connections: parseInt(document.getElementById('maxConnections').value) || 100,
+                auto_stop: document.getElementById('autoStop').checked,
+                verify_pieces: document.getElementById('verifyPieces').checked,
+                pre_allocate: document.getElementById('preAllocate').checked
+            };
+        }
+
+        // File selection modal
+        function showFileSelectionModal(torrentId, files) {
+            currentTorrentId = torrentId;
+            currentFileSelection = {};
+            
+            const content = document.getElementById('fileSelectionContent');
+            content.innerHTML = '';
+
+            files.forEach(file => {
+                currentFileSelection[file.path] = file.selected;
+                
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-icon ${getFileIconClass(file.path)}">
+                        <i class="fas ${getFileIcon(file.path)}"></i>
+                    </div>
+                    <div class="file-details">
+                        <div class="file-path">${file.path}</div>
+                        <div class="file-size">${formatFileSize(file.length)}</div>
+                    </div>
+                    <div class="file-checkbox">
+                        <label class="checkbox">
+                            <input type="checkbox" 
+                                   ${file.selected ? 'checked' : ''} 
+                                   onchange="toggleFileSelection('${file.path}', this.checked)">
+                        </label>
+                    </div>
+                `;
+                content.appendChild(fileItem);
+            });
+
+            document.getElementById('fileSelectionModal').classList.add('is-active');
+        }
+
+        function closeFileSelectionModal() {
+            document.getElementById('fileSelectionModal').classList.remove('is-active');
+        }
+
+        function toggleFileSelection(filePath, selected) {
+            currentFileSelection[filePath] = selected;
+        }
+
+        async function saveFileSelection() {
+            try {
+                const response = await fetch(`/files/${currentTorrentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file_selections: currentFileSelection
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('File selection saved', 'success');
+                    closeFileSelectionModal();
+                    startDownload(currentTorrentId);
+                } else {
+                    showToast(result.error || 'Failed to save file selection', 'error');
+                }
+            } catch (error) {
+                console.error('Save file selection error:', error);
+                showToast('Failed to save file selection', 'error');
+            }
+        }
+
+        // Settings modal
+        function showSettingsModal(torrentId, settings) {
+            currentTorrentId = torrentId;
+            currentSettings = settings;
+            
+            const content = document.getElementById('settingsContent');
+            content.innerHTML = `
+                <div class="settings-grid">
+                    <div class="field">
+                        <label class="label">Download Speed Limit (KB/s)</label>
+                        <div class="control">
+                            <input class="input" type="number" id="modalSpeedLimit" placeholder="0 = unlimited" value="${settings.speed_limit || 0}">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Upload Speed Limit (KB/s)</label>
+                        <div class="control">
+                            <input class="input" type="number" id="modalUploadLimit" placeholder="0 = unlimited" value="${settings.upload_limit || 0}">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Max Peers</label>
+                        <div class="control">
+                            <input class="input" type="number" id="modalMaxPeers" placeholder="50" value="${settings.max_peers || 50}">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Max Connections</label>
+                        <div class="control">
+                            <input class="input" type="number" id="modalMaxConnections" placeholder="100" value="${settings.max_connections || 100}">
+                        </div>
+                    </div>
+                </div>
+                <div class="field mt-3">
+                    <label class="checkbox">
+                        <input type="checkbox" id="modalAutoStop" ${settings.auto_stop ? 'checked' : ''}>
+                        Auto-stop after completion
+                    </label>
+                </div>
+                <div class="field">
+                    <label class="checkbox">
+                        <input type="checkbox" id="modalVerifyPieces" ${settings.verify_pieces ? 'checked' : ''}>
+                        Verify piece hashes
+                    </label>
+                </div>
+                <div class="field">
+                    <label class="checkbox">
+                        <input type="checkbox" id="modalPreAllocate" ${settings.pre_allocate ? 'checked' : ''}>
+                        Pre-allocate disk space
+                    </label>
+                </div>
+            `;
+
+            document.getElementById('settingsModal').classList.add('is-active');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.remove('is-active');
+        }
+
+        async function saveSettings() {
+            try {
+                const settings = {
+                    speed_limit: parseInt(document.getElementById('modalSpeedLimit').value) || 0,
+                    upload_limit: parseInt(document.getElementById('modalUploadLimit').value) || 0,
+                    max_peers: parseInt(document.getElementById('modalMaxPeers').value) || 50,
+                    max_connections: parseInt(document.getElementById('modalMaxConnections').value) || 100,
+                    auto_stop: document.getElementById('modalAutoStop').checked,
+                    verify_pieces: document.getElementById('modalVerifyPieces').checked,
+                    pre_allocate: document.getElementById('modalPreAllocate').checked
+                };
+
+                const response = await fetch(`/settings/${currentTorrentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('Settings saved', 'success');
+                    closeSettingsModal();
+                } else {
+                    showToast(result.error || 'Failed to save settings', 'error');
+                }
+            } catch (error) {
+                console.error('Save settings error:', error);
+                showToast('Failed to save settings', 'error');
+            }
+        }
+
+        // Download management
+        async function startDownload(torrentId) {
+            try {
+                const response = await fetch(`/start/${torrentId}`);
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('Download started', 'success');
+                } else {
+                    showToast(result.error || 'Failed to start download', 'error');
+                }
+            } catch (error) {
+                console.error('Start download error:', error);
+                showToast('Failed to start download', 'error');
+            }
+        }
+
+        async function pauseDownload(torrentId) {
+            try {
+                const response = await fetch(`/pause/${torrentId}`);
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('Download paused', 'success');
+                } else {
+                    showToast(result.error || 'Failed to pause download', 'error');
+                }
+            } catch (error) {
+                console.error('Pause download error:', error);
+                showToast('Failed to pause download', 'error');
+            }
+        }
+
+        async function resumeDownload(torrentId) {
+            try {
+                const response = await fetch(`/resume/${torrentId}`);
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('Download resumed', 'success');
+                } else {
+                    showToast(result.error || 'Failed to resume download', 'error');
+                }
+            } catch (error) {
+                console.error('Resume download error:', error);
+                showToast('Failed to resume download', 'error');
+            }
+        }
+
+        async function stopDownload(torrentId) {
+            try {
+                const response = await fetch(`/stop/${torrentId}`);
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('Download stopped', 'success');
+                } else {
+                    showToast(result.error || 'Failed to stop download', 'error');
+                }
+            } catch (error) {
+                console.error('Stop download error:', error);
+                showToast('Failed to stop download', 'error');
+            }
+        }
+
+        async function removeDownload(torrentId) {
+            if (!confirm('Are you sure you want to remove this download?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/remove/${torrentId}`);
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('Download removed', 'success');
+                    document.getElementById(`download-${torrentId}`).remove();
+                } else {
+                    showToast(result.error || 'Failed to remove download', 'error');
+                }
+            } catch (error) {
+                console.error('Remove download error:', error);
+                showToast('Failed to remove download', 'error');
+            }
+        }
+
+        // Status polling
+        function startStatusPolling() {
+            setInterval(updateDownloads, 2000);
+        }
+
+        async function updateDownloads() {
+            try {
+                const response = await fetch('/status');
+                const downloads = await response.json();
+
+                const container = document.getElementById('downloadsContainer');
+                container.innerHTML = '';
+
+                Object.keys(downloads).forEach(torrentId => {
+                    const download = downloads[torrentId];
+                    container.appendChild(createDownloadCard(download));
+                });
+            } catch (error) {
+                console.error('Status update error:', error);
+            }
+        }
+
+        // Create download card
+        function createDownloadCard(download) {
+            const card = document.createElement('div');
+            card.className = 'download-card';
+            card.id = `download-${download.torrent_id}`;
+
+            const statusClass = download.completed ? 'is-success' : 
+                              download.downloading ? 'is-info' : 
+                              download.paused ? 'is-warning' : 'is-light';
+
+            const statusText = download.completed ? 'Completed' : 
+                              download.downloading ? 'Downloading' : 
+                              download.paused ? 'Paused' : 'Stopped';
+
+            const statusIndicator = download.completed ? 'completed' : 
+                                   download.downloading ? 'downloading' : 
+                                   download.paused ? 'paused' : 'stopped';
+
+            card.innerHTML = `
+                <div class="download-card-header">
+                    <div>
+                        <h4 class="title is-5 has-text-white mb-1">
+                            <span class="status-indicator ${statusIndicator}"></span>
+                            <i class="fas fa-download mr-2"></i>
+                            ${download.name}
+                        </h4>
+                        <p class="has-text-white has-text-weight-light">
+                            ${download.is_multi_file ? 'Multi-file torrent' : 'Single file'}
+                            ${download.is_multi_file ? `(${download.files.filter(f => f.selected).length} files selected)` : ''}
+                        </p>
+                    </div>
+                    <div class="buttons">
+                        ${download.is_multi_file ? `
+                            <button class="button is-small is-light" onclick="showFileSelectionModal('${download.torrent_id}', ${JSON.stringify(download.files).replace(/"/g, '&quot;')})">
+                                <i class="fas fa-folder-open mr-1"></i>
+                                Files
+                            </button>
+                        ` : ''}
+                        <button class="button is-small is-light" onclick="showSettingsModal('${download.torrent_id}', ${JSON.stringify(download.settings).replace(/"/g, '&quot;')})">
+                            <i class="fas fa-cog mr-1"></i>
+                            Settings
+                        </button>
+                        <button class="button is-small is-danger" onclick="removeDownload('${download.torrent_id}')">
+                            <i class="fas fa-trash mr-1"></i>
+                            Remove
+                        </button>
+                    </div>
+                </div>
+                <div class="download-card-body">
+                    <div class="progress-container">
+                        <div class="level">
+                            <div class="level-left">
+                                <div class="level-item">
+                                    <span class="has-text-weight-semibold">${download.progress.toFixed(1)}%</span>
+                                </div>
+                            </div>
+                            <div class="level-right">
+                                <div class="level-item">
+                                    <span class="has-text-grey">${formatFileSize(download.downloaded_size)} / ${formatFileSize(download.total_size)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${download.progress}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="status-grid">
+                        <div class="status-card">
+                            <div class="status-label">Status</div>
+                            <div class="status-value">
+                                <span class="tag ${statusClass}">
+                                    ${statusText}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Download Speed</div>
+                            <div class="status-value">${formatSpeed(download.download_speed)}</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Upload Speed</div>
+                            <div class="status-value">${formatSpeed(download.upload_speed)}</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="status-label">Pieces</div>
+                            <div class="status-value">${download.downloaded_pieces}/${download.total_pieces}</div>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        ${!download.completed ? `
+                            ${download.downloading && !download.paused ? `
+                                <button class="button is-warning btn-control" onclick="pauseDownload('${download.torrent_id}')">
+                                    <i class="fas fa-pause mr-1"></i>
+                                    Pause
+                                </button>
+                            ` : ''}
+                            ${download.paused ? `
+                                <button class="button is-success btn-control" onclick="resumeDownload('${download.torrent_id}')">
+                                    <i class="fas fa-play mr-1"></i>
+                                    Resume
+                                </button>
+                            ` : ''}
+                            ${!download.downloading ? `
+                                <button class="button is-success btn-control" onclick="startDownload('${download.torrent_id}')">
+                                    <i class="fas fa-play mr-1"></i>
+                                    Start
+                                </button>
+                            ` : ''}
+                            ${download.downloading ? `
+                                <button class="button is-danger btn-control" onclick="stopDownload('${download.torrent_id}')">
+                                    <i class="fas fa-stop mr-1"></i>
+                                    Stop
+                                </button>
+                            ` : ''}
+                        ` : ''}
+                    </div>
+
+                    ${download.is_multi_file ? `
+                        <div class="mt-3">
+                            <h6 class="title is-6 mb-2">Files:</h6>
+                            <div class="content">
+                                <ul class="file-list">
+                                    ${download.files.map(file => `
+                                        <li class="file-item">
+                                            <div class="file-icon ${getFileIconClass(file.path)}">
+                                                <i class="fas ${getFileIcon(file.path)}"></i>
+                                            </div>
+                                            <div class="file-details">
+                                                <div class="file-path">${file.path}</div>
+                                                <div class="file-size">${formatFileSize(file.length)}</div>
+                                            </div>
+                                            <div class="file-checkbox">
+                                                <span class="tag ${file.selected ? 'is-success' : 'is-light'}">
+                                                    ${file.selected ? 'Selected' : 'Skipped'}
+                                                </span>
+                                            </div>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Utility functions
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatSpeed(kbps) {
+            if (kbps === 0) return '0 KB/s';
+            if (kbps < 1024) return `${kbps.toFixed(1)} KB/s`;
+            return `${(kbps / 1024).toFixed(1)} MB/s`;
+        }
+
+        function getFileIcon(filePath) {
+            const ext = filePath.split('.').pop().toLowerCase();
+            if (['mp4', 'avi', 'mkv', 'mov', 'wmv'].includes(ext)) return 'fa-video';
+            if (['mp3', 'wav', 'flac', 'aac'].includes(ext)) return 'fa-music';
+            if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return 'fa-image';
+            if (['pdf'].includes(ext)) return 'fa-file-pdf';
+            if (['zip', 'rar', '7z'].includes(ext)) return 'fa-file-archive';
+            if (['txt', 'md', 'log'].includes(ext)) return 'fa-file-alt';
+            return 'fa-file';
+        }
+
+        function getFileIconClass(filePath) {
+            const ext = filePath.split('.').pop().toLowerCase();
+            if (['mp4', 'avi', 'mkv', 'mov', 'wmv'].includes(ext)) return 'video';
+            if (['mp3', 'wav', 'flac', 'aac'].includes(ext)) return 'audio';
+            if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return 'image';
+            if (['pdf'].includes(ext)) return 'document';
+            if (['zip', 'rar', '7z'].includes(ext)) return 'archive';
+            if (['txt', 'md', 'log'].includes(ext)) return 'text';
+            return 'generic';
+        }
+
+        // Settings management
+        async function setDownloadDirectory() {
+            const directory = document.getElementById('downloadDir').value.trim();
+            
+            try {
+                const response = await fetch('/set-download-dir', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        directory: directory || './downloads'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast('Download directory updated', 'success');
+                } else {
+                    showToast(result.error || 'Failed to update directory', 'error');
+                }
+            } catch (error) {
+                console.error('Set directory error:', error);
+                showToast('Failed to update directory', 'error');
+            }
+        }
+
+        async function loadDownloadDirectory() {
+            try {
+                const response = await fetch('/get-download-dir');
+                const result = await response.json();
+                document.getElementById('downloadDir').value = result.directory;
+            } catch (error) {
+                console.error('Load directory error:', error);
+            }
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 100);
+
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => container.removeChild(toast), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
