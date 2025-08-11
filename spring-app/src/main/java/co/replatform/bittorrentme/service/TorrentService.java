@@ -1,9 +1,10 @@
-package com.bittorrentme.service;
+package co.replatform.bittorrentme.service;
 
-import com.bittorrentme.model.TorrentModels;
 import org.apache.commons.codec.digest.DigestUtils;
-import com.bittorrentme.util.Bencode;
 import org.springframework.stereotype.Service;
+
+import co.replatform.bittorrentme.model.TorrentModels;
+import co.replatform.bittorrentme.util.Bencode;
 
 import java.io.IOException;
 import java.nio.file.Files;

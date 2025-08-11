@@ -1,4 +1,4 @@
-package com.bittorrentme.util;
+package co.replatform.bittorrentme.util;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;

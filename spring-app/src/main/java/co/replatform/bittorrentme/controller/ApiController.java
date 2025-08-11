@@ -1,13 +1,14 @@
-package com.bittorrentme.controller;
+package co.replatform.bittorrentme.controller;
 
-import com.bittorrentme.model.TorrentModels;
-import com.bittorrentme.service.DownloadService;
-import com.bittorrentme.service.TorrentService;
-import com.bittorrentme.service.SessionService;
 import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import co.replatform.bittorrentme.model.TorrentModels;
+import co.replatform.bittorrentme.service.DownloadService;
+import co.replatform.bittorrentme.service.SessionService;
+import co.replatform.bittorrentme.service.TorrentService;
 
 import java.io.IOException;
 import java.nio.file.Files;

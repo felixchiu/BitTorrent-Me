@@ -1,4 +1,4 @@
-package com.bittorrentme.model;
+package co.replatform.bittorrentme.model;
 
 import java.util.ArrayList;
 import java.util.List;

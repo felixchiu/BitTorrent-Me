@@ -1,8 +1,9 @@
-package com.bittorrentme.service;
+package co.replatform.bittorrentme.service;
 
-import com.bittorrentme.model.TorrentModels;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import co.replatform.bittorrentme.model.TorrentModels;
 
 import java.io.IOException;
 import java.nio.file.Files;
