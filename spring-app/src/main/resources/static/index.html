@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modern BitTorrent Client</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+    .card { border-radius: 8px; }
+  </style>
+  </head>
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title has-text-white">Modern BitTorrent Client</h1>
+      <div class="card">
+        <div class="card-content">
+          <div class="content">
+            <div class="field">
+              <label class="label">Upload .torrent</label>
+              <div class="control">
+                <input id="fileInput" class="input" type="file" accept=".torrent">
+              </div>
+            </div>
+            <button id="btnUpload" class="button is-primary">Upload</button>
+            <div class="field mt-4">
+              <label class="label">Add magnet link</label>
+              <div class="field has-addons">
+                <div class="control is-expanded">
+                  <input id="magnetInput" class="input" type="text" placeholder="magnet:?xt=...">
+                </div>
+                <div class="control">
+                  <button id="btnAddMagnet" class="button is-link">Add</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-5">
+        <div class="card-content">
+          <p class="title is-5">Downloads</p>
+          <div id="downloads"></div>
+        </div>
+      </div>
+
+      <div class="card mt-5">
+        <div class="card-content">
+          <p class="title is-5">Session</p>
+          <div class="columns">
+            <div class="column is-half">
+              <div class="field is-grouped is-grouped-multiline">
+                <div class="control">
+                  <div class="tags has-addons">
+                    <span class="tag is-dark">Down</span>
+                    <span class="tag" id="statDown">0 KB/s</span>
+                  </div>
+                </div>
+                <div class="control">
+                  <div class="tags has-addons">
+                    <span class="tag is-dark">Up</span>
+                    <span class="tag" id="statUp">0 KB/s</span>
+                  </div>
+                </div>
+                <div class="control">
+                  <div class="tags has-addons">
+                    <span class="tag is-dark">Active</span>
+                    <span class="tag" id="statActive">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="column is-half">
+              <div class="field is-grouped">
+                <p class="control"><input id="maxActive" class="input" type="number" min="1" value="3"></p>
+                <p class="control"><button id="btnSaveQueue" class="button">Save queue limit</button></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    async function refresh() {
+      try {
+        const r = await fetch('/status');
+        const data = await r.json();
+        const host = Object.keys(data);
+        const container = document.getElementById('downloads');
+        container.innerHTML = '';
+        host.forEach(id => {
+          const d = data[id];
+          const el = document.createElement('div');
+          el.className = 'box';
+          let filesHtml = '';
+          if (d.is_multi_file && d.files && d.files.length) {
+            filesHtml = '<details><summary>Files</summary>' +
+              d.files.map(f => `${f.selected ? '✅' : '❌'} ${f.path} (${(f.length/1024/1024).toFixed(1)} MB)`).join('<br/>') +
+              '</details>';
+          }
+          el.innerHTML = `<strong>${d.name}</strong><br/>`+
+            `Progress: ${Number(d.progress||0).toFixed(1)}% | `+
+            `${(d.downloading?'Downloading':d.completed?'Completed':d.paused?'Paused':'Stopped')}`+
+            (d.queue_position?` | Queue #${d.queue_position}`:'')+`<br/>`+
+            filesHtml + '<br/>' +
+            `<button class="button is-small is-success" onclick="fetch('/queue/start/${id}')">Queue Start</button> `+
+            `<button class="button is-small" onclick="fetch('/start/${id}')">Force Start</button> `+
+            `<button class="button is-small is-warning" onclick="fetch('/pause/${id}')">Pause</button> `+
+            `<button class="button is-small is-info" onclick="fetch('/resume/${id}')">Resume</button> `+
+            `<button class="button is-small is-danger" onclick="fetch('/stop/${id}')">Stop</button> `+
+            `<button class="button is-small" onclick="fetch('/remove/${id}')">Remove</button>`;
+          container.appendChild(el);
+        });
+      } catch(e) { /* ignore */ }
+    }
+
+    document.getElementById('btnUpload').addEventListener('click', async () => {
+      const input = document.getElementById('fileInput');
+      if (!input.files || input.files.length === 0) return;
+      const form = new FormData();
+      form.append('file', input.files[0]);
+      try {
+        const r = await fetch('/upload', { method: 'POST', body: form });
+        const res = await r.json();
+        if (res.is_multi_file && res.files && res.files.length) {
+          // Modal with checkboxes styled like Transmission
+          const dlg = document.createElement('div');
+          dlg.className = 'modal is-active';
+          const list = res.files.map(f => `
+            <label class="checkbox" style="display:block;margin:6px 0;">
+              <input type="checkbox" data-path="${f.path}" ${f.selected? 'checked':''}>
+              ${f.path} <span class="tag is-light">${(f.length/1024/1024).toFixed(1)} MB</span>
+            </label>`).join('');
+          dlg.innerHTML = `
+            <div class="modal-background"></div>
+            <div class="modal-card">
+              <header class="modal-card-head">
+                <p class="modal-card-title">Select files to download</p>
+                <button class="delete" aria-label="close"></button>
+              </header>
+              <section class="modal-card-body" style="max-height:60vh;overflow:auto;">
+                ${list}
+              </section>
+              <footer class="modal-card-foot">
+                <button class="button is-primary" id="confirmFiles">Start Download</button>
+                <button class="button" id="cancelFiles">Cancel</button>
+              </footer>
+            </div>`;
+          document.body.appendChild(dlg);
+          const close = () => document.body.removeChild(dlg);
+          dlg.querySelector('.delete').onclick = close;
+          dlg.querySelector('#cancelFiles').onclick = close;
+          dlg.querySelector('#confirmFiles').onclick = async () => {
+            const selections = {};
+            dlg.querySelectorAll('input[type=checkbox][data-path]').forEach(cb => {
+              selections[cb.getAttribute('data-path')] = cb.checked;
+            });
+            await fetch(`/files/${res.torrent_id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(selections)});
+            close();
+            await fetch(`/start/${res.torrent_id}`);
+            setTimeout(refresh, 600);
+          };
+        } else {
+          await fetch(`/start/${res.torrent_id}`);
+        }
+        setTimeout(refresh, 600);
+      } catch(e) {}
+    });
+
+    setInterval(refresh, 1500);
+    refresh();
+
+    document.getElementById('btnAddMagnet').addEventListener('click', async () => {
+      const v = document.getElementById('magnetInput').value.trim();
+      if (!v) return;
+      await fetch('/add-magnet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ magnet: v }) });
+      setTimeout(refresh, 600);
+    });
+
+    async function refreshStats() {
+      try {
+        const r = await fetch('/session-stats');
+        const s = await r.json();
+        document.getElementById('statDown').innerText = `${(s.downloadSpeed||0).toFixed(1)} KB/s`;
+        document.getElementById('statUp').innerText = `${(s.uploadSpeed||0).toFixed(1)} KB/s`;
+        document.getElementById('statActive').innerText = `${s.activeTorrentCount||0}`;
+        const q = await (await fetch('/queue/settings')).json();
+        document.getElementById('maxActive').value = q.max_active_downloads;
+      } catch(e) {}
+    }
+    setInterval(refreshStats, 1500);
+    refreshStats();
+
+    document.getElementById('btnSaveQueue').addEventListener('click', async () => {
+      const max = parseInt(document.getElementById('maxActive').value||'3', 10);
+      await fetch('/queue/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ max_active_downloads: max }) });
+      refreshStats();
+    });
+  </script>
+</body>
+</html>
+
+

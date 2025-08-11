@@ -1,9 +1,9 @@
-# 🚀 Modern BitTorrent Client
+# 🚀 Modern BitTorrent Client (Spring Boot)
 
-A feature-rich, enterprise-grade BitTorrent client built with modern Python design patterns, FastAPI, and a beautiful web interface. This application demonstrates advanced software engineering principles including separation of concerns, dependency injection, observer patterns, and robust error handling.
+A modern Java Spring Boot application with a Thymeleaf UI that simulates BitTorrent downloads with concurrent workers using Spring's @Async.
 
-![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)
+![Java](https://img.shields.io/badge/Java-21-blue)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)
 
@@ -64,16 +64,16 @@ A feature-rich, enterprise-grade BitTorrent client built with modern Python desi
 
 ### System Overview
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Web Interface │    │   FastAPI App   │    │  Download Engine│
-│   (Bulma + JS)  │◄──►│   (Async/Await) │◄──►│  (Process Pool) │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                       ┌─────────────────┐
-                       │   State Manager │
-                       │   (JSON/Pickle) │
-                       └─────────────────┘
+┌─────────────────┐    ┌──────────────────────────┐    ┌──────────────────────────┐
+│   Thymeleaf UI  │◄──►│   Spring MVC Controllers │◄──►│  Services (@Async workers)│
+│ (Bulma + JS)    │    │   (REST endpoints)       │    │  Download/Torrent logic   │
+└─────────────────┘    └──────────────────────────┘    └──────────────────────────┘
+                                 │
+                                 ▼
+                         ┌──────────────────┐
+                         │ File System      │
+                         │ downloads/<id>/  │
+                         └──────────────────┘
 ```
 
 ### Component Architecture
@@ -215,7 +215,17 @@ class DownloadSettingsBuilder:
 - pip (Python package manager)
 - Virtual environment (recommended)
 
-### One-Command Setup
+### Java Spring Boot
+```bash
+# Build and run Spring Boot app
+cd spring-app
+mvn spring-boot:run
+
+# Open the UI
+open http://localhost:8081
+```
+
+This repository now uses a single runtime: Spring Boot. All legacy Python/Flask code has been removed.
 ```bash
 # Clone and setup
 git clone <repository-url>
@@ -231,54 +241,9 @@ python app.py
 ```
 
 ### Access the Application
-- **Web Interface**: http://localhost:5001
-- **API Documentation**: http://localhost:5001/docs
-- **Alternative API Docs**: http://localhost:5001/redoc
+- **Web Interface**: http://localhost:8081
 
-## 📦 Installation
-
-### Step-by-Step Installation
-
-#### 1. **Environment Setup**
-```bash
-# Create project directory
-mkdir bittorrent-me && cd bittorrent-me
-
-# Create virtual environment
-python -m venv bittorrent_me
-
-# Activate virtual environment
-source bittorrent_me/bin/activate  # Linux/macOS
-# OR
-bittorrent_me\Scripts\activate     # Windows
-```
-
-#### 2. **Dependencies Installation**
-```bash
-# Install all dependencies
-pip install -r requirements.txt
-
-# Verify installation
-python -c "import fastapi, uvicorn, bencodepy; print('✅ All dependencies installed successfully!')"
-```
-
-#### 3. **Application Setup**
-```bash
-# Create necessary directories
-mkdir -p downloads logs
-
-# Set permissions (Linux/macOS)
-chmod +x app.py
-```
-
-#### 4. **Configuration**
-```bash
-# Copy configuration template
-cp config.example.py config.py
-
-# Edit configuration (optional)
-nano config.py
-```
+## 🔧 Configuration
 
 ### Docker Installation (Alternative)
 
@@ -288,7 +253,7 @@ nano config.py
 docker build -t bittorrent-client .
 
 # Run container
-docker run -p 5001:5001 -v $(pwd)/downloads:/app/downloads bittorrent-client
+docker run -p 8081:8081 -v $(pwd)/downloads:/app/downloads bittorrent-client
 ```
 
 #### 2. **Docker Compose**
@@ -302,66 +267,13 @@ docker-compose logs -f
 
 ## 🔧 Configuration
 
-### Environment Variables
-```bash
-# Application settings
-export BT_DOWNLOAD_DIR="./downloads"
-export BT_MAX_CONCURRENT_DOWNLOADS=5
-export BT_DEFAULT_SPEED_LIMIT=0
-export BT_LOG_LEVEL="INFO"
-
-# Server settings
-export BT_HOST="0.0.0.0"
-export BT_PORT=5001
-export BT_RELOAD=true
-```
-
-### Configuration File (`config.py`)
-```python
-from pathlib import Path
-from pydantic import BaseSettings
-
-class Settings(BaseSettings):
-    # Application settings
-    download_dir: Path = Path("./downloads")
-    max_concurrent_downloads: int = 5
-    default_speed_limit: int = 0  # 0 = unlimited
-    
-    # Server settings
-    host: str = "0.0.0.0"
-    port: int = 5001
-    reload: bool = True
-    
-    # Logging
-    log_level: str = "INFO"
-    log_file: Path = Path("bittorrent.log")
-    
-    class Config:
-        env_prefix = "BT_"
-```
-
-### Advanced Configuration
-
-#### Download Settings
-```python
-# Per-download configuration
-download_settings = DownloadSettings(
-    speed_limit=1024,        # 1 MB/s
-    upload_limit=512,        # 512 KB/s
-    max_peers=50,           # Maximum peers
-    max_connections=100,     # Maximum connections
-    auto_stop=True,         # Auto-stop after completion
-    verify_pieces=True,     # Verify piece hashes
-    pre_allocate=True       # Pre-allocate disk space
-)
-```
-
-#### Performance Tuning
-```python
-# Batch processing settings
-Config.BATCH_SIZE = 20              # Pieces per batch
-Config.SIMULATION_DELAY = 0.005     # 5ms delay per piece
-Config.CHUNK_SIZE = 1024 * 1024    # 1MB chunks for file writing
+`spring-app/src/main/resources/application.yaml`
+```yaml
+server:
+  port: 8081
+logging:
+  level:
+    root: INFO
 ```
 
 ## 💻 Usage
@@ -369,7 +281,7 @@ Config.CHUNK_SIZE = 1024 * 1024    # 1MB chunks for file writing
 ### Basic Usage
 
 #### 1. **Upload Torrent File**
-1. Open web interface at http://localhost:5001
+1. Open web interface at http://localhost:8081
 2. Drag and drop a `.torrent` file or click to browse
 3. Configure basic settings (optional)
 4. Click "Upload" to parse the torrent
@@ -409,16 +321,16 @@ const settings = {
 #### 3. **Process Control**
 ```bash
 # Start download via API
-curl -X GET "http://localhost:5001/start/{torrent_id}"
+curl -X GET "http://localhost:8081/start/{torrent_id}"
 
 # Pause download
-curl -X GET "http://localhost:5001/pause/{torrent_id}"
+curl -X GET "http://localhost:8081/pause/{torrent_id}"
 
 # Resume download
-curl -X GET "http://localhost:5001/resume/{torrent_id}"
+curl -X GET "http://localhost:8081/resume/{torrent_id}"
 
 # Stop download
-curl -X GET "http://localhost:5001/stop/{torrent_id}"
+curl -X GET "http://localhost:8081/stop/{torrent_id}"
 ```
 
 ### Command Line Interface
@@ -451,8 +363,7 @@ client.parse_torrent('example.torrent')
 ```
 
 ## 🔌 API Reference
-
-### Core Endpoints
+Core endpoints exposed by the Spring Boot app:
 
 #### **Upload Torrent**
 ```http
@@ -613,120 +524,17 @@ bittorrent-me/
 
 ### Key Files Explained
 
-#### **`app.py`** - Main Application
-- **FastAPI Application**: Web framework setup
-- **BitTorrentClient**: Main client class with dependency injection
-- **Download**: Individual download management
-- **DownloadProcess**: Separate process handling
-- **API Routes**: RESTful endpoints
-- **Error Handling**: Comprehensive error management
+Key Java files:
+- `Application.java`: Spring Boot entry-point (`@EnableAsync` enabled)
+- `config/AsyncConfig.java`: Thread pool for async downloads
+- `controller/ApiController.java`: REST endpoints
+- `controller/ViewController.java`: Serves Thymeleaf UI
+- `service/DownloadService.java`: Async worker simulation
+- `service/TorrentService.java`: Simulated torrent parsing
 
-#### **`templates/index.html`** - Web Interface
-- **Modern UI**: Bulma CSS framework
-- **Real-time Updates**: JavaScript polling
-- **Interactive Controls**: Context-aware buttons
-- **File Management**: Drag-and-drop interface
-- **Settings Modals**: Configuration panels
+## 🛠️ Development
 
-#### **`requirements.txt`** - Dependencies
-- **FastAPI**: Modern web framework
-- **Uvicorn**: ASGI server
-- **Pydantic**: Data validation
-- **bencodepy**: BitTorrent file parsing
-- **Testing**: pytest, httpx
-- **Code Quality**: black, isort, flake8, mypy
-
-## 🧪 Testing
-
-### Running Tests
-
-#### **Unit Tests**
-```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest tests/test_app.py
-
-# Run with coverage
-pytest --cov=app --cov-report=html
-
-# Run async tests
-pytest tests/test_async.py -v
-```
-
-#### **Integration Tests**
-```bash
-# Test API endpoints
-pytest tests/test_api.py -v
-
-# Test download functionality
-pytest tests/test_download.py -v
-```
-
-#### **Performance Tests**
-```bash
-# Load testing
-pytest tests/test_performance.py -v
-
-# Memory usage testing
-pytest tests/test_memory.py -v
-```
-
-### Test Structure
-
-#### **Test Files**
-```python
-# tests/test_app.py
-import pytest
-from fastapi.testclient import TestClient
-from app import app
-
-client = TestClient(app)
-
-def test_upload_torrent():
-    """Test torrent file upload"""
-    with open("test.torrent", "rb") as f:
-        response = client.post("/upload", files={"file": f})
-    assert response.status_code == 200
-
-def test_download_control():
-    """Test download start/stop functionality"""
-    # Test implementation
-    pass
-```
-
-#### **Async Tests**
-```python
-# tests/test_async.py
-import pytest
-import asyncio
-from app import BitTorrentClient
-
-@pytest.mark.asyncio
-async def test_async_download():
-    """Test async download functionality"""
-    client = BitTorrentClient()
-    # Test implementation
-    pass
-```
-
-### Test Coverage
-
-#### **Coverage Targets**
-- **Lines**: 90%+
-- **Functions**: 95%+
-- **Branches**: 85%+
-- **Statements**: 90%+
-
-#### **Coverage Report**
-```bash
-# Generate coverage report
-pytest --cov=app --cov-report=html --cov-report=term
-
-# View coverage in browser
-open htmlcov/index.html
-```
+Java 21 and Maven required. Build with `mvn package` and run with `mvn spring-boot:run` or the generated jar.
 
 ## 🔒 Security
 
@@ -992,7 +800,7 @@ def download_file(file_path: Path, settings: DownloadSettings) -> bool:
 ```bash
 # Error: Address already in use
 # Solution: Kill existing process
-lsof -ti:5001 | xargs kill -9
+lsof -ti:8081 | xargs kill -9
 
 # Or change port
 export BT_PORT=5002
